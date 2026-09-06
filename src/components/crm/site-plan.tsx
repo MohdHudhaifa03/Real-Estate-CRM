@@ -1,18 +1,194 @@
-import { useMemo } from "react";
+"use client";
 
+import { useMemo } from "react";
+import Image from "next/image";
+
+import masterPlanImg from "@/assets/master-site-plan.jpg";
 import type { Unit } from "@/lib/crm/types";
 import { cn } from "@/lib/utils";
 
-const statusFill: Record<Unit["status"], string> = {
-  available: "var(--success)",
-  reserved: "var(--warning)",
-  sold: "var(--muted-foreground)",
-};
+/* ------------------------------------------------------------------ */
+/*  Coordinate layout — distributes units in a clean grid on the map   */
+/* ------------------------------------------------------------------ */
 
 /**
- * Stylised master site plan. Units are laid out per block on an illustrated
- * plot so the plan doubles as an interactive availability map.
+ * Deterministic seeded random for stable jitter across renders.
  */
+function seededRandom(seed: number) {
+  let t = (seed + 0x6d2b79f5) | 0;
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+
+/**
+ * Generates clean percentage-based (x%, y%) grid coordinates for each unit,
+ * distributed across block-specific zones on the master plan image.
+ */
+function generateCoordinates(
+  units: Unit[],
+  blocks: string[],
+): Map<string, { x: number; y: number }> {
+  const coords = new Map<string, { x: number; y: number }>();
+
+  const zones = [
+    { x: 8, y: 55, w: 22, h: 35 },
+    { x: 35, y: 52, w: 28, h: 38 },
+    { x: 65, y: 52, w: 28, h: 38 },
+    { x: 10, y: 12, w: 35, h: 35 },
+    { x: 50, y: 12, w: 35, h: 35 },
+    { x: 30, y: 30, w: 40, h: 25 },
+  ];
+
+  blocks.forEach((block, bi) => {
+    const zone = zones[bi % zones.length]!;
+    const blockUnits = units.filter((u) => u.block === block);
+    const cols = Math.ceil(Math.sqrt(blockUnits.length));
+    const rows = Math.ceil(blockUnits.length / cols);
+
+    blockUnits.forEach((unit, i) => {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const seed = bi * 97 + i * 13;
+
+      const baseX = zone.x + (zone.w / (cols + 1)) * (col + 1);
+      const baseY = zone.y + (zone.h / (rows + 1)) * (row + 1);
+      const jitterX = (seededRandom(seed) - 0.5) * (zone.w / (cols + 1)) * 0.25;
+      const jitterY = (seededRandom(seed + 1) - 0.5) * (zone.h / (rows + 1)) * 0.25;
+
+      coords.set(unit.id, {
+        x: Math.max(3, Math.min(94, baseX + jitterX)),
+        y: Math.max(3, Math.min(94, baseY + jitterY)),
+      });
+    });
+  });
+
+  return coords;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Plot marker component                                              */
+/* ------------------------------------------------------------------ */
+
+function PlotMarker({
+  unit,
+  x,
+  y,
+  isSelected,
+  onSelect,
+}: {
+  unit: Unit;
+  x: number;
+  y: number;
+  isSelected: boolean;
+  onSelect: (unit: Unit) => void;
+}) {
+  const isAvailable = unit.status === "available";
+  const isBooked = unit.status === "reserved" || unit.status === "sold";
+
+  // Extract short plot number from code (e.g. "TO-101" → "101")
+  const plotNum = unit.code.replace(/^[A-Z]+-/, "");
+
+  /* ---- Booked / Sold: red dot with strikethrough number ---- */
+  if (isBooked) {
+    return (
+      <div
+        className="absolute flex flex-col items-center pointer-events-none"
+        style={{
+          left: `${x}%`,
+          top: `${y}%`,
+          transform: "translate(-50%, -50%)",
+          zIndex: 5,
+        }}
+        aria-label={`Plot ${unit.code} — ${unit.status}`}
+      >
+        {/* Red dot */}
+        <span
+          className="rounded-full"
+          style={{
+            width: 12,
+            height: 12,
+            backgroundColor: "#dc2626",
+            boxShadow: "0 0 6px rgba(220, 38, 38, 0.5)",
+          }}
+        />
+        {/* Plot number (dimmed, strikethrough) */}
+        <span
+          className="mt-0.5 font-sans text-[10px] font-semibold leading-none line-through"
+          style={{
+            color: "rgba(160, 50, 50, 0.7)",
+            textShadow: "0 1px 2px rgba(255,255,255,0.6)",
+          }}
+        >
+          {plotNum}
+        </span>
+      </div>
+    );
+  }
+
+  /* ---- Available: clean yellow number, clickable ---- */
+  return (
+    <button
+      onClick={() => onSelect(unit)}
+      className={cn(
+        "absolute flex flex-col items-center transition-all duration-200 ease-out",
+        "hover:scale-125 cursor-pointer"
+      )}
+      style={{
+        left: `${x}%`,
+        top: `${y}%`,
+        transform: "translate(-50%, -50%)",
+        zIndex: isSelected ? 30 : 10,
+      }}
+      aria-label={`Plot ${unit.code} — available — click to book`}
+    >
+      {/* Selection ring */}
+      {isSelected && (
+        <span
+          className="absolute -inset-2 rounded-lg animate-ping"
+          style={{
+            backgroundColor: "rgba(72, 140, 88, 0.2)",
+          }}
+        />
+      )}
+
+      {/* Plot number */}
+      <span
+        className={cn(
+          "relative font-sans font-bold leading-none transition-all duration-200",
+          isSelected ? "text-base" : "text-sm",
+        )}
+        style={{
+          color: isSelected ? "#fff" : "#e8d44d",
+          textShadow: isSelected
+            ? "0 0 10px rgba(72, 140, 88, 0.9), 0 1px 3px rgba(0,0,0,0.6)"
+            : "0 1px 3px rgba(0,0,0,0.7), 0 0 6px rgba(0,0,0,0.3)",
+        }}
+      >
+        {plotNum}
+      </span>
+
+      {/* Green dot indicator under the number for available */}
+      <span
+        className={cn(
+          "mt-0.5 rounded-full transition-all duration-200",
+          isSelected && "animate-pulse",
+        )}
+        style={{
+          width: isSelected ? 8 : 5,
+          height: isSelected ? 8 : 5,
+          backgroundColor: isSelected ? "#4ade80" : "rgba(74, 222, 128, 0.7)",
+          boxShadow: isSelected ? "0 0 8px rgba(74, 222, 128, 0.6)" : "none",
+        }}
+      />
+    </button>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Main SitePlan                                                      */
+/* ------------------------------------------------------------------ */
+
 export function SitePlan({
   units,
   blocks,
@@ -24,137 +200,64 @@ export function SitePlan({
   selectedUnitId?: string | undefined;
   onSelect: (unit: Unit) => void;
 }) {
-  const grouped = useMemo(
-    () => blocks.map((block) => ({ block, items: units.filter((u) => u.block === block) })),
-    [blocks, units],
-  );
+  const coords = useMemo(() => generateCoordinates(units, blocks), [units, blocks]);
 
-  const cols = 5;
-  const cell = 52;
-  const gap = 10;
-  const blockWidth = cols * cell + (cols - 1) * gap;
+  const availableCount = units.filter((u) => u.status === "available").length;
+  const bookedCount = units.filter((u) => u.status !== "available").length;
 
   return (
-    <div className="tilt-scene">
-      <div className="overflow-x-auto rounded-2xl border border-border/70 bg-sand/50 p-4 shadow-soft">
-        <svg
-          role="img"
-          aria-label="Master site plan with unit availability"
-          viewBox={`0 0 ${blockWidth + 80} ${grouped.length * 240 + 40}`}
-          className="h-auto w-full min-w-[520px]"
-        >
-          <defs>
-            <linearGradient id="ground" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="var(--sand)" />
-              <stop offset="100%" stopColor="var(--secondary)" />
-            </linearGradient>
-            <filter id="plateShadow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow
-                dy="6"
-                stdDeviation="6"
-                floodColor="var(--navy)"
-                floodOpacity="0.18"
-              />
-            </filter>
-          </defs>
-
-          <rect
-            x="0"
-            y="0"
-            width={blockWidth + 80}
-            height={grouped.length * 240 + 40}
-            rx="18"
-            fill="url(#ground)"
-          />
-          {/* illustrated landscaping */}
-          <g opacity="0.5">
-            <path
-              d={`M20 ${grouped.length * 240 + 10} Q ${(blockWidth + 80) / 2} ${grouped.length * 240 - 40} ${blockWidth + 60} ${grouped.length * 240 + 10}`}
-              stroke="var(--primary)"
-              strokeWidth="2"
-              fill="none"
-              strokeDasharray="6 8"
+    <div className="space-y-4">
+      {/* Map container */}
+      <div className="tilt-scene">
+        <div className="relative overflow-hidden rounded-2xl border border-border/70 bg-card shadow-soft">
+          {/* Background master plan image */}
+          <div className="relative aspect-[16/9] w-full">
+            <Image
+              src={masterPlanImg}
+              alt="Master site plan"
+              fill
+              className="object-cover"
+              priority
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1100px"
             />
-          </g>
 
-          {grouped.map((group, gi) => {
-            const top = 30 + gi * 240;
-            return (
-              <g key={group.block}>
-                <rect
-                  x="24"
-                  y={top}
-                  width={blockWidth + 32}
-                  height="196"
-                  rx="16"
-                  fill="var(--card)"
-                  filter="url(#plateShadow)"
+            {/* Plot markers */}
+            {units.map((unit) => {
+              const pos = coords.get(unit.id);
+              if (!pos) return null;
+              return (
+                <PlotMarker
+                  key={unit.id}
+                  unit={unit}
+                  x={pos.x}
+                  y={pos.y}
+                  isSelected={unit.id === selectedUnitId}
+                  onSelect={onSelect}
                 />
-                <text
-                  x="40"
-                  y={top + 28}
-                  fill="var(--muted-foreground)"
-                  fontSize="13"
-                  letterSpacing="2"
-                >
-                  {group.block.toUpperCase()}
-                </text>
-                {group.items.map((unit, i) => {
-                  const col = i % cols;
-                  const row = Math.floor(i / cols);
-                  const x = 40 + col * (cell + gap);
-                  const y = top + 44 + row * (cell + gap);
-                  const selected = unit.id === selectedUnitId;
-                  return (
-                    <g
-                      key={unit.id}
-                      className="cursor-pointer transition-opacity hover:opacity-80"
-                      onClick={() => onSelect(unit)}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`${unit.code} — ${unit.status}`}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") onSelect(unit);
-                      }}
-                    >
-                      <rect
-                        x={x}
-                        y={y}
-                        width={cell}
-                        height={cell}
-                        rx="10"
-                        fill={statusFill[unit.status]}
-                        fillOpacity={unit.status === "available" ? 0.22 : 0.3}
-                        stroke={selected ? "var(--primary)" : statusFill[unit.status]}
-                        strokeWidth={selected ? 3 : 1.5}
-                      />
-                      <text
-                        x={x + cell / 2}
-                        y={y + cell / 2 + 4}
-                        textAnchor="middle"
-                        fontSize="11"
-                        fill="var(--foreground)"
-                      >
-                        {unit.code}
-                      </text>
-                    </g>
-                  );
-                })}
-              </g>
-            );
-          })}
-        </svg>
+              );
+            })}
+          </div>
+        </div>
       </div>
-      <div className="mt-3 flex flex-wrap gap-4 text-xs text-muted-foreground">
-        {(["available", "reserved", "sold"] as Unit["status"][]).map((s) => (
-          <span key={s} className="flex items-center gap-2 capitalize">
-            <span
-              className={cn("size-3 rounded-sm")}
-              style={{ backgroundColor: statusFill[s], opacity: 0.45 }}
-            />
-            {s}
-          </span>
-        ))}
+
+      {/* Legend */}
+      <div className="flex flex-wrap items-center gap-6 px-1 text-xs text-muted-foreground">
+        <span className="flex items-center gap-2">
+          <span
+            className="inline-block size-3 rounded-full"
+            style={{ backgroundColor: "#4ade80", boxShadow: "0 0 4px rgba(74, 222, 128, 0.4)" }}
+          />
+          <span className="font-medium text-foreground">Available</span>
+          <span className="text-muted-foreground/70">({availableCount})</span>
+        </span>
+        <span className="flex items-center gap-2">
+          <span
+            className="inline-block size-3 rounded-full"
+            style={{ backgroundColor: "#dc2626", boxShadow: "0 0 4px rgba(220, 38, 38, 0.4)" }}
+          />
+          <span className="font-medium text-foreground">Booked</span>
+          <span className="text-muted-foreground/70">({bookedCount})</span>
+        </span>
       </div>
     </div>
   );

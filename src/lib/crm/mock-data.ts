@@ -11,6 +11,17 @@ import type { Booking, Lead, Project, Unit, User } from "./types";
  * whole layer can be swapped for real network calls without touching the UI.
  */
 
+/** Extract a plain URL string from a static image import. */
+function src(img: { src: string } | string): string {
+  return typeof img === "string" ? img : img.src;
+}
+
+const heroSrc = src(heroResidence);
+const villasSrc = src(projectVillas);
+const marinaSrc = src(projectMarina);
+const townhousesSrc = src(projectTownhouses);
+const interiorSrc = src(interiorLiving);
+
 export const images = {
   hero: heroResidence,
   villas: projectVillas,
@@ -59,8 +70,8 @@ export const projects: Project[] = [
     description:
       "A 24-storey landmark residence wrapped in warm sandstone and curved terraces, with a private arrival court, spa level and sky lounge on the crown floor.",
     amenities: ["Sky lounge", "Spa & hammam", "Valet arrival", "Concierge", "Infinity pool"],
-    cover: heroResidence,
-    gallery: [heroResidence, interiorLiving, projectMarina],
+    cover: heroSrc,
+    gallery: [heroSrc, interiorSrc, marinaSrc],
     blocks: ["Tower A", "Tower B"],
   },
   {
@@ -73,8 +84,8 @@ export const projects: Project[] = [
     description:
       "Twenty-eight courtyard villas arranged around shaded olive walks, each with a private pool, roof terrace and staff quarters.",
     amenities: ["Private pools", "Olive walk", "Clubhouse", "Padel court", "Gated security"],
-    cover: projectVillas,
-    gallery: [projectVillas, interiorLiving, projectTownhouses],
+    cover: villasSrc,
+    gallery: [villasSrc, interiorSrc, townhousesSrc],
     blocks: ["Garden Row", "Olive Row"],
   },
   {
@@ -87,8 +98,8 @@ export const projects: Project[] = [
     description:
       "Waterfront apartments over a sandstone podium, with berth access, a sunset deck and full-height glazing facing the marina.",
     amenities: ["Private berths", "Sunset deck", "Beach club", "Gym", "Kids pool"],
-    cover: projectMarina,
-    gallery: [projectMarina, interiorLiving, heroResidence],
+    cover: marinaSrc,
+    gallery: [marinaSrc, interiorSrc, heroSrc],
     blocks: ["Quay East", "Quay West"],
   },
   {
@@ -101,8 +112,8 @@ export const projects: Project[] = [
     description:
       "Forty-two family townhomes on tree-lined lanes, with terracotta detailing, private gardens and a shared central green.",
     amenities: ["Central green", "Cycle lanes", "Nursery", "Community hall"],
-    cover: projectTownhouses,
-    gallery: [projectTownhouses, interiorLiving, projectVillas],
+    cover: townhousesSrc,
+    gallery: [townhousesSrc, interiorSrc, villasSrc],
     blocks: ["Lane 1", "Lane 2", "Lane 3"],
   },
 ];

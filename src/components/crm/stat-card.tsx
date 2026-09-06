@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import Link from "next/link";
 import { ArrowUpRight, type LucideIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -54,8 +54,7 @@ export function StatCard({
   return (
     <TiltCard className="card-sheen overflow-hidden" max={5} lift={8}>
       <Link
-        to={to}
-        search={search as never}
+        href={search ? { pathname: to, query: search } : to}
         className="flex h-full flex-col gap-4 p-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <div className="flex items-start justify-between">

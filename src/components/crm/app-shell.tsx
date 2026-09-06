@@ -1,4 +1,5 @@
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 import {
   Building2,
   CalendarCheck,
@@ -37,7 +38,7 @@ const NAV = [
 
 function Brand({ compact = false }: { compact?: boolean }) {
   return (
-    <Link to="/" className="flex items-center gap-3">
+    <Link href="/" className="flex items-center gap-3">
       <span className="grid size-9 place-items-center rounded-xl bg-gradient-warm text-primary-foreground shadow-soft">
         <Building2 className="size-4" />
       </span>
@@ -55,7 +56,7 @@ function Brand({ compact = false }: { compact?: boolean }) {
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const { user } = useCrm();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const pathname = usePathname();
 
   return (
     <nav className="space-y-1">
@@ -64,7 +65,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
         return (
           <Link
             key={item.to}
-            to={item.to}
+            href={item.to}
             onClick={onNavigate}
             className={cn(
               "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-300",
@@ -84,7 +85,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 
 function UserMenu() {
   const { user, logout, switchRole } = useCrm();
-  const navigate = useNavigate();
+  const router = useRouter();
   if (!user) return null;
 
   return (
@@ -118,7 +119,7 @@ function UserMenu() {
         <DropdownMenuItem
           onClick={() => {
             logout();
-            navigate({ to: "/login" });
+            router.push("/login");
           }}
         >
           <LogOut className="size-4" /> Sign out
@@ -159,12 +160,12 @@ export function AppShell({
   children: ReactNode;
 }) {
   const { user, hydrated } = useCrm();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    if (hydrated && !user) navigate({ to: "/login" });
-  }, [hydrated, user, navigate]);
+    if (hydrated && !user) router.push("/login");
+  }, [hydrated, user, router]);
 
   if (!hydrated || !user) {
     return (
