@@ -10,33 +10,114 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BookingsRouteImport } from './routes/bookings'
+import { Route as LeadsRouteImport } from './routes/leads'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as ProjectsRouteImport } from './routes/projects'
+import { Route as TeamRouteImport } from './routes/team'
+import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BookingsRoute = BookingsRouteImport.update({
+  id: '/bookings',
+  path: '/bookings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LeadsRoute = LeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsRoute = ProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeamRoute = TeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
+  id: '/$projectId',
+  path: '/$projectId',
+  getParentRoute: () => ProjectsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/bookings': typeof BookingsRoute
+  '/leads': typeof LeadsRoute
+  '/login': typeof LoginRoute
+  '/projects': typeof ProjectsRouteWithChildren
+  '/team': typeof TeamRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/bookings': typeof BookingsRoute
+  '/leads': typeof LeadsRoute
+  '/login': typeof LoginRoute
+  '/projects': typeof ProjectsRouteWithChildren
+  '/team': typeof TeamRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/bookings': typeof BookingsRoute
+  '/leads': typeof LeadsRoute
+  '/login': typeof LoginRoute
+  '/projects': typeof ProjectsRouteWithChildren
+  '/team': typeof TeamRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/bookings'
+    | '/leads'
+    | '/login'
+    | '/projects'
+    | '/team'
+    | '/projects/$projectId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/bookings'
+    | '/leads'
+    | '/login'
+    | '/projects'
+    | '/team'
+    | '/projects/$projectId'
+  id:
+    | '__root__'
+    | '/'
+    | '/bookings'
+    | '/leads'
+    | '/login'
+    | '/projects'
+    | '/team'
+    | '/projects/$projectId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BookingsRoute: typeof BookingsRoute
+  LeadsRoute: typeof LeadsRoute
+  LoginRoute: typeof LoginRoute
+  ProjectsRoute: typeof ProjectsRouteWithChildren
+  TeamRoute: typeof TeamRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +129,70 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/bookings': {
+      id: '/bookings'
+      path: '/bookings'
+      fullPath: '/bookings'
+      preLoaderRoute: typeof BookingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leads': {
+      id: '/leads'
+      path: '/leads'
+      fullPath: '/leads'
+      preLoaderRoute: typeof LeadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects': {
+      id: '/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof ProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/team': {
+      id: '/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof TeamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects/$projectId': {
+      id: '/projects/$projectId'
+      path: '/$projectId'
+      fullPath: '/projects/$projectId'
+      preLoaderRoute: typeof ProjectsProjectIdRouteImport
+      parentRoute: typeof ProjectsRoute
+    }
   }
 }
 
+interface ProjectsRouteChildren {
+  ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
+}
+
+const ProjectsRouteChildren: ProjectsRouteChildren = {
+  ProjectsProjectIdRoute: ProjectsProjectIdRoute,
+}
+
+const ProjectsRouteWithChildren = ProjectsRoute._addFileChildren(
+  ProjectsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BookingsRoute: BookingsRoute,
+  LeadsRoute: LeadsRoute,
+  LoginRoute: LoginRoute,
+  ProjectsRoute: ProjectsRouteWithChildren,
+  TeamRoute: TeamRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
