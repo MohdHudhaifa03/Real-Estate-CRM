@@ -130,6 +130,24 @@ export default function ProjectDetailPage() {
                 </dd>
               </div>
             </dl>
+            {(project.buildings.length > 0 || project.blocks.length > 0) && (
+              <div className="mt-5">
+                <p className="text-xs uppercase tracking-wider text-muted-foreground">Buildings</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {(project.buildings.length > 0 ? project.buildings.map((b) => b.name) : project.blocks).map(
+                    (name) => {
+                      const count = own.filter((u) => u.block === name).length;
+                      const free = own.filter((u) => u.block === name && u.status === "available").length;
+                      return (
+                        <Badge key={name} variant="outline">
+                          {name} · {free}/{count || 0}
+                        </Badge>
+                      );
+                    },
+                  )}
+                </div>
+              </div>
+            )}
             <Button
               className="mt-5 w-full"
               disabled={available.length === 0}
@@ -187,6 +205,7 @@ export default function ProjectDetailPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Unit</TableHead>
+                    <TableHead className="hidden sm:table-cell">Building</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead className="hidden sm:table-cell">Area</TableHead>
                     <TableHead className="hidden md:table-cell">View</TableHead>
@@ -199,6 +218,7 @@ export default function ProjectDetailPage() {
                   {own.map((unit) => (
                     <TableRow key={unit.id}>
                       <TableCell>{unit.code}</TableCell>
+                      <TableCell className="hidden sm:table-cell">{unit.block}</TableCell>
                       <TableCell>{unit.type}</TableCell>
                       <TableCell className="hidden sm:table-cell">{unit.areaSqm} m²</TableCell>
                       <TableCell className="hidden md:table-cell text-muted-foreground">

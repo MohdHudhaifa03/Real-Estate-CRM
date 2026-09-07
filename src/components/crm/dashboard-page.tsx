@@ -20,15 +20,15 @@ import { ErrorState, LoadingBlock } from "@/components/crm/states";
 import { TiltCard } from "@/components/crm/tilt-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { compactMoney, money, shortDate, relativeDays } from "@/lib/crm/format";
+import { compactMoney, money, shortDate, relativeDays, followUpLabel } from "@/lib/crm/format";
 import { useCrm } from "@/lib/crm/store";
-import { LEAD_STAGES } from "@/lib/crm/types";
+import { isClosedStage, LEAD_STAGES } from "@/lib/crm/types";
 
 export default function DashboardPage() {
   const { status, retry, visibleLeads, visibleBookings, units, projects, user, leads, users } =
     useCrm();
 
-  const openLeads = visibleLeads.filter((l) => l.stage !== "won" && l.stage !== "lost");
+  const openLeads = visibleLeads.filter((l) => !isClosedStage(l.stage));
   const pipelineValue = openLeads.reduce((sum, l) => sum + l.budget, 0);
   const available = units.filter((u) => u.status === "available").length;
   const activeBookings = visibleBookings.filter((b) => b.status !== "cancelled");
@@ -37,11 +37,11 @@ export default function DashboardPage() {
     .sort((a, b) => +new Date(b.at) - +new Date(a.at))
     .slice(0, 6);
 
-  /* ── Follow-up leads: contacted / viewing stages need attention ── */
+  const today = new Date().toISOString().slice(0, 10);
   const followUpLeads = visibleLeads
-    .filter((l) => l.stage === "contacted" || l.stage === "viewing" || l.stage === "negotiation")
-    .sort((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt))
-    .slice(0, 5);
+    .filter((l) => l.followUpDate && l.followUpDate <= today && !isClosedStage(l.stage))
+    .sort((a, b) => String(a.followUpDate).localeCompare(String(b.followUpDate)))
+    .slice(0, 6);
 
   /* ── New leads awaiting first contact ── */
   const newLeads = visibleLeads.filter((l) => l.stage === "new");
@@ -53,10 +53,10 @@ export default function DashboardPage() {
     .slice(0, 4);
 
   /* ── Conversion stats ── */
-  const wonLeads = visibleLeads.filter((l) => l.stage === "won").length;
+  const bookedLeads = visibleLeads.filter((l) => l.stage === "booked").length;
   const lostLeads = visibleLeads.filter((l) => l.stage === "lost").length;
-  const closedLeads = wonLeads + lostLeads;
-  const conversionRate = closedLeads > 0 ? Math.round((wonLeads / closedLeads) * 100) : 0;
+  const closedLeads = bookedLeads + lostLeads;
+  const conversionRate = closedLeads > 0 ? Math.round((bookedLeads / closedLeads) * 100) : 0;
   const totalBookingValue = activeBookings.reduce((sum, b) => sum + b.amount, 0);
 
   return (
@@ -65,7 +65,7 @@ export default function DashboardPage() {
       description={
         user?.role === "admin"
           ? "Team-wide view of every lead, unit and booking"
-          : "Your leads, viewings and bookings"
+          : "Your leads, follow-ups and bookings"
       }
       actions={
         <Button asChild>
@@ -124,7 +124,7 @@ export default function DashboardPage() {
                 <p className="text-xs text-muted-foreground">Conversion rate</p>
                 <p className="font-serif text-2xl">{conversionRate}%</p>
                 <p className="text-xs text-muted-foreground">
-                  {wonLeads} won / {closedLeads} closed
+                  {bookedLeads} booked / {closedLeads} closed
                 </p>
               </div>
             </TiltCard>
@@ -168,18 +168,18 @@ export default function DashboardPage() {
                 </Badge>
               </div>
               <p className="mt-1 text-sm text-muted-foreground">
-                Leads in contacted, viewing or negotiation that need your attention.
+                Leads with a follow-up date on or before today.
               </p>
               {followUpLeads.length === 0 ? (
                 <p className="mt-6 text-center text-sm text-muted-foreground">
-                  🎉 No follow-ups pending — you&#39;re all caught up!
+                  No follow-ups due — you&#39;re all caught up.
                 </p>
               ) : (
                 <div className="mt-4 space-y-2">
                   {followUpLeads.map((lead) => (
                     <Link
                       key={lead.id}
-                      href={{ pathname: "/leads", query: { stage: lead.stage } }}
+                      href={`/leads?stage=${lead.stage}`}
                       className="flex items-center justify-between rounded-xl px-3 py-2.5 transition-colors hover:bg-secondary/60"
                     >
                       <div className="min-w-0">
@@ -187,7 +187,7 @@ export default function DashboardPage() {
                           {lead.name}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {lead.source} · {relativeDays(lead.createdAt)}
+                          {lead.followUpDate ? followUpLabel(lead.followUpDate) : relativeDays(lead.createdAt)}
                         </p>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
@@ -273,7 +273,7 @@ export default function DashboardPage() {
                   return (
                     <Link
                       key={stage.id}
-                      href={{ pathname: "/leads", query: { stage: stage.id } }}
+                      href={`/leads?stage=${stage.id}`}
                       className="block rounded-xl px-3 py-2 transition-colors hover:bg-secondary/60"
                     >
                       <div className="flex items-center justify-between text-sm">
@@ -344,7 +344,7 @@ export default function DashboardPage() {
                     </p>
                   </div>
                   <Button asChild size="sm" variant="outline">
-                    <Link href={{ pathname: "/leads", query: { stage: "new" } }}>
+                    <Link href="/leads?stage=new">
                       View all
                     </Link>
                   </Button>

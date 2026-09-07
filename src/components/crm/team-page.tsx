@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { compactMoney } from "@/lib/crm/format";
 import { useCrm } from "@/lib/crm/store";
+import { isClosedStage } from "@/lib/crm/types";
 
 export default function TeamPage() {
   const { users, leads, bookings, user, status, retry } = useCrm();
@@ -21,7 +22,7 @@ export default function TeamPage() {
         <EmptyState
           icon={<ShieldAlert className="size-5" />}
           title="Admin access only"
-          description="Team performance is visible to sales directors. Switch to the Admin demo role to view it."
+          description="Team performance is visible to administrators. Log in with an Admin account to view it."
           action={
             <Button asChild>
               <Link href="/leads">Back to my leads</Link>
@@ -42,8 +43,8 @@ export default function TeamPage() {
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {users.map((member) => {
             const own = leads.filter((l) => l.ownerId === member.id);
-            const won = own.filter((l) => l.stage === "won").length;
-            const open = own.filter((l) => l.stage !== "won" && l.stage !== "lost");
+            const booked = own.filter((l) => l.stage === "booked").length;
+            const open = own.filter((l) => !isClosedStage(l.stage));
             const held = bookings.filter(
               (b) => b.agentId === member.id && b.status !== "cancelled",
             ).length;
@@ -71,9 +72,9 @@ export default function TeamPage() {
                     </dt>
                   </div>
                   <div>
-                    <dd className="font-serif text-2xl">{won}</dd>
+                    <dd className="font-serif text-2xl">{booked}</dd>
                     <dt className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                      Reserved
+                      Booked
                     </dt>
                   </div>
                   <div>

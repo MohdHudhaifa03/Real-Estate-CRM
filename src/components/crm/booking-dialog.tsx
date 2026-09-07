@@ -78,7 +78,7 @@ export function BookingDialog({
         <DialogHeader>
           <DialogTitle className="font-serif text-2xl">Book a unit</DialogTitle>
           <DialogDescription>
-            Holding a unit reserves it instantly and moves the lead to Reserved.
+            Holding a unit reserves it instantly and moves the lead to Booked. Two people cannot hold the same unit.
           </DialogDescription>
         </DialogHeader>
 
@@ -94,7 +94,7 @@ export function BookingDialog({
               <SelectContent className="max-h-64">
                 {availableUnits.map((u) => (
                   <SelectItem key={u.id} value={u.id}>
-                    {projects.find((p) => p.id === u.projectId)?.name} · {u.code} · {u.type}
+                    {projects.find((p) => p.id === u.projectId)?.name} · {u.block} · {u.code} · {u.type}
                   </SelectItem>
                 ))}
               </SelectContent>

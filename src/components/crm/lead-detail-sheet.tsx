@@ -49,7 +49,7 @@ export function LeadDetailSheet({
     units,
   } = useCrm();
   const [note, setNote] = useState("");
-  const [draft, setDraft] = useState({ name: "", email: "", phone: "", budget: "" });
+  const [draft, setDraft] = useState({ name: "", email: "", phone: "", budget: "", followUpDate: "" });
   const [editError, setEditError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -59,6 +59,7 @@ export function LeadDetailSheet({
       email: lead.email,
       phone: lead.phone,
       budget: String(lead.budget),
+      followUpDate: lead.followUpDate ?? "",
     });
     setEditError(null);
   }, [lead]);
@@ -83,6 +84,7 @@ export function LeadDetailSheet({
         email: draft.email.trim(),
         phone: draft.phone.trim(),
         budget,
+        followUpDate: draft.followUpDate || null,
       });
       toast.success("Lead details updated");
     } catch (error) {
@@ -118,6 +120,9 @@ export function LeadDetailSheet({
               <Badge variant="secondary">{money(current.budget)} budget</Badge>
               <Badge variant="outline">{project?.name ?? "No project"}</Badge>
               <Badge variant="outline">{owner?.name ?? "Unassigned"}</Badge>
+              {current.followUpDate ? (
+                <Badge variant="secondary">Follow-up {shortDate(current.followUpDate)}</Badge>
+              ) : null}
             </div>
           </div>
 
@@ -207,7 +212,7 @@ export function LeadDetailSheet({
                   rows={3}
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  placeholder="Log a call, viewing or follow-up…"
+                  placeholder="Log a call, site visit or follow-up…"
                   aria-label="New activity note"
                 />
                 <Button
@@ -267,6 +272,16 @@ export function LeadDetailSheet({
                     onChange={(e) =>
                       setDraft((d) => ({ ...d, budget: e.target.value.replace(/[^\d]/g, "") }))
                     }
+                  />
+                </div>
+                <div>
+                  <Label className="mb-1.5 block text-xs uppercase tracking-wider text-muted-foreground">
+                    Follow-up date
+                  </Label>
+                  <Input
+                    type="date"
+                    value={draft.followUpDate}
+                    onChange={(e) => setDraft((d) => ({ ...d, followUpDate: e.target.value }))}
                   />
                 </div>
                 <div>

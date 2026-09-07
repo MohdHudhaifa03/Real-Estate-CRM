@@ -38,6 +38,7 @@ const schema = z.object({
   interestedProjectId: z.string().optional(),
   notes: z.string().max(400, "Keep notes under 400 characters.").optional(),
   ownerId: z.string().optional(),
+  followUpDate: z.string().optional(),
 });
 
 type Errors = Partial<Record<keyof z.infer<typeof schema>, string>>;
@@ -61,6 +62,7 @@ export function LeadFormDialog({
     interestedProjectId: "",
     notes: "",
     ownerId: user?.id ?? "",
+    followUpDate: "",
   });
 
   const set = (key: keyof typeof form, value: string) =>
@@ -72,6 +74,7 @@ export function LeadFormDialog({
       budget: form.budget === "" ? Number.NaN : Number(form.budget),
       interestedProjectId: form.interestedProjectId || undefined,
       ownerId: form.ownerId || undefined,
+      followUpDate: form.followUpDate || undefined,
     });
     if (!parsed.success) {
       const next: Errors = {};
@@ -96,6 +99,7 @@ export function LeadFormDialog({
           ? { interestedProjectId: parsed.data.interestedProjectId }
           : {}),
         ...(parsed.data.ownerId ? { ownerId: parsed.data.ownerId } : {}),
+        ...(parsed.data.followUpDate ? { followUpDate: parsed.data.followUpDate } : {}),
       });
       toast.success(`${lead.name} added to the New stage`);
       setForm({
@@ -107,6 +111,7 @@ export function LeadFormDialog({
         interestedProjectId: "",
         notes: "",
         ownerId: user?.id ?? "",
+        followUpDate: "",
       });
       onOpenChange(false);
     } catch (error) {
@@ -204,6 +209,13 @@ export function LeadFormDialog({
               </Select>
             </Field>
           ) : null}
+          <Field label="Follow-up date">
+            <Input
+              type="date"
+              value={form.followUpDate}
+              onChange={(e) => set("followUpDate", e.target.value)}
+            />
+          </Field>
           <Field label="Notes" error={errors.notes} className="sm:col-span-2">
             <Textarea
               rows={3}

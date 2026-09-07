@@ -9,16 +9,28 @@ export interface User {
   initials: string;
 }
 
-export type LeadStage = "new" | "contacted" | "viewing" | "negotiation" | "won" | "lost";
+export type LeadStage =
+  | "new"
+  | "contacted"
+  | "site_visit"
+  | "interested"
+  | "negotiation"
+  | "booked"
+  | "lost";
 
 export const LEAD_STAGES: { id: LeadStage; label: string; hint: string }[] = [
   { id: "new", label: "New", hint: "Fresh enquiries awaiting first contact" },
   { id: "contacted", label: "Contacted", hint: "Qualified by phone or email" },
-  { id: "viewing", label: "Viewing", hint: "Site visit scheduled or done" },
+  { id: "site_visit", label: "Site Visit", hint: "Site visit scheduled or completed" },
+  { id: "interested", label: "Interested", hint: "Actively considering a unit or project" },
   { id: "negotiation", label: "Negotiation", hint: "Price and terms in discussion" },
-  { id: "won", label: "Reserved", hint: "Unit booked and paperwork signed" },
+  { id: "booked", label: "Booked", hint: "Unit reserved against this lead" },
   { id: "lost", label: "Lost", hint: "Not proceeding for now" },
 ];
+
+export function isClosedStage(stage: LeadStage) {
+  return stage === "booked" || stage === "lost";
+}
 
 export type LeadSource = "Website" | "Referral" | "Walk-in" | "Campaign" | "Broker";
 
@@ -54,6 +66,7 @@ export interface Lead {
   ownerId: string;
   createdAt: string;
   notes: string;
+  followUpDate?: string;
   activity: LeadActivity[];
 }
 
@@ -71,6 +84,13 @@ export interface Unit {
   status: UnitStatus;
   block: string;
   view: string;
+  buildingId?: string;
+}
+
+export interface Building {
+  id: string;
+  name: string;
+  projectId: string;
 }
 
 export interface Project {
@@ -85,6 +105,7 @@ export interface Project {
   cover: string;
   gallery: string[];
   blocks: string[];
+  buildings: Building[];
 }
 
 export interface Booking {
@@ -107,6 +128,7 @@ export interface NewLeadInput {
   interestedProjectId?: string;
   notes: string;
   ownerId?: string;
+  followUpDate?: string;
 }
 
 export interface BookingInput {
@@ -121,4 +143,5 @@ export interface ContactEdit {
   phone?: string;
   budget?: number;
   interestedProjectId?: string;
+  followUpDate?: string | null;
 }

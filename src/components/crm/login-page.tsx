@@ -99,6 +99,34 @@ export default function LoginPage() {
               {busy ? "Signing in…" : "Sign in"}
             </Button>
           </form>
+
+          <div className="mt-8 space-y-2 text-xs text-muted-foreground">
+            <p className="uppercase tracking-wider">Demo accounts · password demo1234</p>
+            <div className="flex flex-col gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-auto justify-start py-2 text-left text-xs"
+                onClick={() => {
+                  setEmail("layla@aurelia.ae");
+                  setPassword("demo1234");
+                }}
+              >
+                Admin — layla@aurelia.ae
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-auto justify-start py-2 text-left text-xs"
+                onClick={() => {
+                  setEmail("tariq@aurelia.ae");
+                  setPassword("demo1234");
+                }}
+              >
+                Sales — tariq@aurelia.ae
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

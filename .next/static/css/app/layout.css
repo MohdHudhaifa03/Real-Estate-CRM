@@ -256,9 +256,6 @@
   .relative {
     position: relative;
   }
-  .static {
-    position: static;
-  }
   .sticky {
     position: sticky;
   }
@@ -977,6 +974,9 @@
   }
   .justify-center {
     justify-content: center;
+  }
+  .justify-start {
+    justify-content: flex-start;
   }
   .gap-1 {
     gap: var(--spacing);
@@ -1949,6 +1949,9 @@
   }
   .\[--cell-size\:2rem\] {
     --cell-size: 2rem;
+  }
+  .running {
+    animation-play-state: running;
   }
   .tilt-active {
     transition: transform 90ms linear,

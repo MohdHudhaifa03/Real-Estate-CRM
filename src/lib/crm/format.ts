@@ -28,3 +28,14 @@ export function relativeDays(iso: string) {
   if (diff === 1) return "yesterday";
   return `${diff} days ago`;
 }
+
+export function followUpLabel(iso: string) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const due = new Date(`${iso}T00:00:00`);
+  const diff = Math.round((due.getTime() - today.getTime()) / 86_400_000);
+  if (diff < 0) return diff === -1 ? "1 day overdue" : `${Math.abs(diff)} days overdue`;
+  if (diff === 0) return "due today";
+  if (diff === 1) return "due tomorrow";
+  return `due in ${diff} days`;
+}

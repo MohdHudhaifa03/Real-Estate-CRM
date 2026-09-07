@@ -57,6 +57,7 @@ export function mapLead(raw: Record<string, unknown>): Lead {
     ownerId: String(raw.ownerId ?? ""),
     createdAt: toIso(raw.createdAt),
     notes: String(raw.notes ?? ""),
+    ...(raw.followUpDate ? { followUpDate: String(raw.followUpDate).slice(0, 10) } : {}),
     activity: activity
       .filter((item): item is Record<string, unknown> => !!item && typeof item === "object")
       .map(mapActivity)
@@ -68,6 +69,16 @@ export function mapLead(raw: Record<string, unknown>): Lead {
 }
 
 export function mapProject(raw: Record<string, unknown>): Project {
+  const buildings = Array.isArray(raw.buildings)
+    ? raw.buildings
+        .filter((item): item is Record<string, unknown> => !!item && typeof item === "object")
+        .map((item) => ({
+          id: String(item.id ?? ""),
+          name: String(item.name ?? ""),
+          projectId: String(item.projectId ?? raw.id ?? ""),
+        }))
+    : [];
+  const blocks = Array.isArray(raw.blocks) ? raw.blocks.map(String) : buildings.map((b) => b.name);
   return {
     id: String(raw.id ?? ""),
     name: String(raw.name ?? ""),
@@ -79,7 +90,8 @@ export function mapProject(raw: Record<string, unknown>): Project {
     amenities: Array.isArray(raw.amenities) ? raw.amenities.map(String) : [],
     cover: String(raw.cover ?? ""),
     gallery: Array.isArray(raw.gallery) ? raw.gallery.map(String) : [],
-    blocks: Array.isArray(raw.blocks) ? raw.blocks.map(String) : [],
+    blocks,
+    buildings,
   };
 }
 
@@ -96,6 +108,7 @@ export function mapUnit(raw: Record<string, unknown>): Unit {
     status: (raw.status as UnitStatus) ?? "available",
     block: String(raw.block ?? ""),
     view: String(raw.view ?? ""),
+    ...(raw.buildingId ? { buildingId: String(raw.buildingId) } : {}),
   };
 }
 

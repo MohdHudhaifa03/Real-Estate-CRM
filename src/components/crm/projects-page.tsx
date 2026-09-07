@@ -4,7 +4,7 @@ import Link from "next/link";
 import { MapPin } from "lucide-react";
 
 import { AppShell } from "@/components/crm/app-shell";
-import { ErrorState, LoadingBlock } from "@/components/crm/states";
+import { EmptyState, ErrorState, LoadingBlock } from "@/components/crm/states";
 import { TiltCard } from "@/components/crm/tilt-card";
 import { Badge } from "@/components/ui/badge";
 import { money } from "@/lib/crm/format";
@@ -14,11 +14,16 @@ export default function ProjectsPage() {
   const { projects, units, status, retry } = useCrm();
 
   return (
-    <AppShell title="Projects" description="Four live developments across Amman and Aqaba">
+    <AppShell title="Projects" description="Live developments, buildings and unit availability">
       {status === "error" ? (
         <ErrorState onRetry={retry} />
       ) : status === "loading" ? (
         <LoadingBlock rows={4} />
+      ) : projects.length === 0 ? (
+        <EmptyState
+          title="No projects yet"
+          description="Inventory is loaded from the API. Start the backend, run the seed script, then refresh."
+        />
       ) : (
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {projects.map((project) => {
@@ -57,7 +62,8 @@ export default function ProjectsPage() {
                     <div className="mt-4 flex items-center justify-between text-sm">
                       <span className="font-serif text-lg">from {money(project.priceFrom)}</span>
                       <span className="text-muted-foreground">
-                        {available} of {own.length} available
+                        {project.buildings.length || project.blocks.length} buildings · {available}/{own.length}{" "}
+                        available
                       </span>
                     </div>
                   </div>
