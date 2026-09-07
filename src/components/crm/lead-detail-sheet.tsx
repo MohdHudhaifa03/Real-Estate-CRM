@@ -24,6 +24,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { money, shortDate } from "@/lib/crm/format";
+import { getErrorMessage } from "@/lib/api/error";
 import { useCrm } from "@/lib/crm/store";
 import { LEAD_STAGES, type Lead, type LeadStage } from "@/lib/crm/types";
 
@@ -68,7 +69,7 @@ export function LeadDetailSheet({
   const owner = users.find((u) => u.id === current.ownerId);
   const leadBookings = bookings.filter((b) => b.leadId === current.id);
 
-  function saveDetails() {
+  async function saveDetails() {
     if (draft.name.trim().length < 2) return setEditError("Enter the full name.");
     if (!/^\S+@\S+\.\S+$/.test(draft.email.trim())) return setEditError("Enter a valid email.");
     if (draft.phone.trim().length < 7) return setEditError("Enter a reachable phone number.");
@@ -76,13 +77,17 @@ export function LeadDetailSheet({
     if (!Number.isFinite(budget) || budget < 10000)
       return setEditError("Budget must be at least $10,000.");
     setEditError(null);
-    updateLeadContact(current.id, {
-      name: draft.name.trim(),
-      email: draft.email.trim(),
-      phone: draft.phone.trim(),
-      budget,
-    });
-    toast.success("Lead details updated");
+    try {
+      await updateLeadContact(current.id, {
+        name: draft.name.trim(),
+        email: draft.email.trim(),
+        phone: draft.phone.trim(),
+        budget,
+      });
+      toast.success("Lead details updated");
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
   }
 
   return (
@@ -125,14 +130,19 @@ export function LeadDetailSheet({
                 value={current.stage}
                 onValueChange={(v) => {
                   const from = current.stage;
-                  updateLeadStage(current.id, v as LeadStage);
-                  const label = LEAD_STAGES.find((s) => s.id === v)?.label ?? v;
-                  toast.success(`${current.name} moved to ${label}`, {
-                    action: {
-                      label: "Undo",
-                      onClick: () => updateLeadStage(current.id, from, { undo: true }),
-                    },
-                  });
+                  void updateLeadStage(current.id, v as LeadStage)
+                    .then(() => {
+                      const label = LEAD_STAGES.find((s) => s.id === v)?.label ?? v;
+                      toast.success(`${current.name} moved to ${label}`, {
+                        action: {
+                          label: "Undo",
+                          onClick: () => {
+                            void updateLeadStage(current.id, from, { undo: true });
+                          },
+                        },
+                      });
+                    })
+                    .catch((error) => toast.error(getErrorMessage(error)));
                 }}
               >
                 <SelectTrigger>
@@ -155,8 +165,9 @@ export function LeadDetailSheet({
                 value={current.ownerId}
                 disabled={user?.role !== "admin"}
                 onValueChange={(v) => {
-                  reassignLead(current.id, v);
-                  toast.success("Lead reassigned");
+                  void reassignLead(current.id, v)
+                    .then(() => toast.success("Lead reassigned"))
+                    .catch((error) => toast.error(getErrorMessage(error)));
                 }}
               >
                 <SelectTrigger>
@@ -203,9 +214,12 @@ export function LeadDetailSheet({
                   variant="outline"
                   disabled={note.trim().length < 3}
                   onClick={() => {
-                    addLeadNote(current.id, note.trim());
-                    setNote("");
-                    toast.success("Activity logged");
+                    void addLeadNote(current.id, note.trim())
+                      .then(() => {
+                        setNote("");
+                        toast.success("Activity logged");
+                      })
+                      .catch((error) => toast.error(getErrorMessage(error)));
                   }}
                 >
                   Add to timeline
@@ -262,8 +276,9 @@ export function LeadDetailSheet({
                   <Select
                     value={current.interestedProjectId ?? ""}
                     onValueChange={(v) => {
-                      updateLeadContact(current.id, { interestedProjectId: v });
-                      toast.success("Interested project updated");
+                      void updateLeadContact(current.id, { interestedProjectId: v })
+                        .then(() => toast.success("Interested project updated"))
+                        .catch((error) => toast.error(getErrorMessage(error)));
                     }}
                   >
                     <SelectTrigger>

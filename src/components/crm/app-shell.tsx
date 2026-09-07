@@ -6,7 +6,6 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
-  ShieldCheck,
   Users,
   UsersRound,
 } from "lucide-react";
@@ -19,8 +18,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -84,7 +81,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 function UserMenu() {
-  const { user, logout, switchRole } = useCrm();
+  const { user, logout } = useCrm();
   const router = useRouter();
   if (!user) return null;
 
@@ -106,20 +103,9 @@ function UserMenu() {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel className="text-xs uppercase tracking-wider text-muted-foreground">
-          Demo role
-        </DropdownMenuLabel>
-        <DropdownMenuItem onClick={() => switchRole("admin")}>
-          <ShieldCheck className="size-4" /> View as Admin
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => switchRole("sales")}>
-          <Users className="size-4" /> View as Sales Employee
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => {
-            logout();
-            router.push("/login");
+            void logout().then(() => router.push("/login"));
           }}
         >
           <LogOut className="size-4" /> Sign out

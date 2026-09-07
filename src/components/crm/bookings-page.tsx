@@ -12,6 +12,7 @@ import { TiltCard } from "@/components/crm/tilt-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { money, shortDate } from "@/lib/crm/format";
+import { getErrorMessage } from "@/lib/api/error";
 import { useCrm } from "@/lib/crm/store";
 
 export default function BookingsPage() {
@@ -84,8 +85,9 @@ export default function BookingsPage() {
                     size="sm"
                     disabled={booking.status !== "held"}
                     onClick={() => {
-                      confirmBooking(booking.id);
-                      toast.success(`Booking for ${unit?.code} confirmed`);
+                      void confirmBooking(booking.id)
+                        .then(() => toast.success(`Booking for ${unit?.code} confirmed`))
+                        .catch((error) => toast.error(getErrorMessage(error)));
                     }}
                   >
                     Confirm
@@ -95,8 +97,9 @@ export default function BookingsPage() {
                     variant="outline"
                     disabled={booking.status === "cancelled"}
                     onClick={() => {
-                      cancelBooking(booking.id);
-                      toast.info(`${unit?.code} released back to available`);
+                      void cancelBooking(booking.id)
+                        .then(() => toast.info(`${unit?.code} released back to available`))
+                        .catch((error) => toast.error(getErrorMessage(error)));
                     }}
                   >
                     Cancel

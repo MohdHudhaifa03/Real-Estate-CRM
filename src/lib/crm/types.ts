@@ -97,3 +97,28 @@ export interface Booking {
   amount: number;
   status: "held" | "confirmed" | "cancelled";
 }
+
+export interface NewLeadInput {
+  name: string;
+  email: string;
+  phone: string;
+  source: Lead["source"];
+  budget: number;
+  interestedProjectId?: string;
+  notes: string;
+  ownerId?: string;
+}
+
+export interface BookingInput {
+  unitId: string;
+  leadId: string;
+  visitDate: string;
+}
+
+export interface ContactEdit {
+  name?: string;
+  email?: string;
+  phone?: string;
+  budget?: number;
+  interestedProjectId?: string;
+}

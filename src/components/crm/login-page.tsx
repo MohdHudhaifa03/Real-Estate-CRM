@@ -1,21 +1,20 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Building2, ShieldCheck, Users } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { TiltCard } from "@/components/crm/tilt-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { images } from "@/lib/crm/mock-data";
+import { images } from "@/lib/crm/images";
 import { useCrm } from "@/lib/crm/store";
 
 export default function LoginPage() {
-  const { login, loginAs, user, hydrated } = useCrm();
+  const { login, user, hydrated } = useCrm();
   const router = useRouter();
-  const [email, setEmail] = useState("admin@aurelia.com");
-  const [password, setPassword] = useState("aurelia");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -64,9 +63,7 @@ export default function LoginPage() {
             <Building2 className="size-5" />
           </span>
           <h1 className="mt-6 font-serif text-4xl text-foreground">Aurelia CRM</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Sign in to your sales workspace. Demo password: <strong>aurelia</strong>
-          </p>
+          <p className="mt-2 text-sm text-muted-foreground">Sign in to your sales workspace.</p>
 
           <form onSubmit={submit} className="mt-8 space-y-4" noValidate>
             <div>
@@ -102,46 +99,6 @@ export default function LoginPage() {
               {busy ? "Signing in…" : "Sign in"}
             </Button>
           </form>
-
-          <p className="mt-8 text-xs uppercase tracking-[0.16em] text-muted-foreground">
-            Or explore a demo role
-          </p>
-          <div className="mt-3 grid gap-3">
-            <TiltCard max={4} lift={6}>
-              <button
-                className="flex w-full items-center gap-3 p-4 text-left"
-                onClick={() => {
-                  loginAs("u-1");
-                  router.push("/");
-                }}
-              >
-                <ShieldCheck className="size-5 text-primary" />
-                <span>
-                  <span className="block text-sm text-foreground">Layla Haddad — Admin</span>
-                  <span className="block text-xs text-muted-foreground">
-                    Full pipeline, team and booking oversight
-                  </span>
-                </span>
-              </button>
-            </TiltCard>
-            <TiltCard max={4} lift={6}>
-              <button
-                className="flex w-full items-center gap-3 p-4 text-left"
-                onClick={() => {
-                  loginAs("u-2");
-                  router.push("/");
-                }}
-              >
-                <Users className="size-5 text-primary" />
-                <span>
-                  <span className="block text-sm text-foreground">Omar Nassar — Sales</span>
-                  <span className="block text-xs text-muted-foreground">
-                    Sees only his own leads and bookings
-                  </span>
-                </span>
-              </button>
-            </TiltCard>
-          </div>
         </div>
       </div>
     </div>

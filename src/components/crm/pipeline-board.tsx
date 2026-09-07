@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { LeadCard } from "@/components/crm/lead-card";
 import { AnimatedValue } from "@/components/crm/stat-card";
 import { Button } from "@/components/ui/button";
+import { getErrorMessage } from "@/lib/api/error";
 import { useCrm } from "@/lib/crm/store";
 import { LEAD_STAGES, type Lead, type LeadStage } from "@/lib/crm/types";
 import { cn } from "@/lib/utils";
@@ -39,21 +40,25 @@ export function PipelineBoard({
       const from = lead.stage;
       const label = LEAD_STAGES.find((s) => s.id === to)?.label ?? to;
       const fromLabel = LEAD_STAGES.find((s) => s.id === from)?.label ?? from;
-      updateLeadStage(lead.id, to);
-      setMovedId(lead.id);
-      if (movedTimer.current) clearTimeout(movedTimer.current);
-      movedTimer.current = setTimeout(() => setMovedId(null), 700);
-      toast.success(`${lead.name} moved to ${label}`, {
-        description: `Previously in ${fromLabel}.`,
-        action: {
-          label: "Undo",
-          onClick: () => {
-            updateLeadStage(lead.id, from, { undo: true });
-            setMovedId(lead.id);
-            toast.info(`${lead.name} restored to ${fromLabel}`);
-          },
-        },
-      });
+      void updateLeadStage(lead.id, to)
+        .then(() => {
+          setMovedId(lead.id);
+          if (movedTimer.current) clearTimeout(movedTimer.current);
+          movedTimer.current = setTimeout(() => setMovedId(null), 700);
+          toast.success(`${lead.name} moved to ${label}`, {
+            description: `Previously in ${fromLabel}.`,
+            action: {
+              label: "Undo",
+              onClick: () => {
+                void updateLeadStage(lead.id, from, { undo: true }).then(() => {
+                  setMovedId(lead.id);
+                  toast.info(`${lead.name} restored to ${fromLabel}`);
+                });
+              },
+            },
+          });
+        })
+        .catch((error) => toast.error(getErrorMessage(error)));
     },
     [updateLeadStage],
   );

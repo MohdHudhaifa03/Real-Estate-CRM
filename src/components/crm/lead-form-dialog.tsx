@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useCrm } from "@/lib/crm/store";
+import { getErrorMessage } from "@/lib/api/error";
 import type { LeadSource } from "@/lib/crm/types";
 
 const SOURCES: LeadSource[] = ["Website", "Referral", "Walk-in", "Campaign", "Broker"];
@@ -83,32 +84,36 @@ export function LeadFormDialog({
     }
     setErrors({});
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 450));
-    const lead = addLead({
-      name: parsed.data.name,
-      email: parsed.data.email,
-      phone: parsed.data.phone,
-      source: parsed.data.source,
-      budget: parsed.data.budget,
-      notes: parsed.data.notes ?? "",
-      ...(parsed.data.interestedProjectId
-        ? { interestedProjectId: parsed.data.interestedProjectId }
-        : {}),
-      ...(parsed.data.ownerId ? { ownerId: parsed.data.ownerId } : {}),
-    });
-    setSaving(false);
-    toast.success(`${lead.name} added to the New stage`);
-    setForm({
-      name: "",
-      email: "",
-      phone: "",
-      budget: "",
-      source: "Website",
-      interestedProjectId: "",
-      notes: "",
-      ownerId: user?.id ?? "",
-    });
-    onOpenChange(false);
+    try {
+      const lead = await addLead({
+        name: parsed.data.name,
+        email: parsed.data.email,
+        phone: parsed.data.phone,
+        source: parsed.data.source,
+        budget: parsed.data.budget,
+        notes: parsed.data.notes ?? "",
+        ...(parsed.data.interestedProjectId
+          ? { interestedProjectId: parsed.data.interestedProjectId }
+          : {}),
+        ...(parsed.data.ownerId ? { ownerId: parsed.data.ownerId } : {}),
+      });
+      toast.success(`${lead.name} added to the New stage`);
+      setForm({
+        name: "",
+        email: "",
+        phone: "",
+        budget: "",
+        source: "Website",
+        interestedProjectId: "",
+        notes: "",
+        ownerId: user?.id ?? "",
+      });
+      onOpenChange(false);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (

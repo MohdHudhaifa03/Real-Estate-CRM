@@ -61,8 +61,7 @@ export function BookingDialog({
     if (!visitDate) return setError("Pick a visit date.");
     if (visitDate < today) return setError("The visit date cannot be in the past.");
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 400));
-    const result = createBooking({ unitId, leadId, visitDate });
+    const result = await createBooking({ unitId, leadId, visitDate });
     setSaving(false);
     if (!result.ok) {
       setError(result.error ?? "This booking could not be created.");
