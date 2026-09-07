@@ -5,13 +5,13 @@
 
 /*
  * Aurelia CRM design system — warm upscale cream / terracotta / navy.
- * Headings use Cormorant Garamond (serif), body uses Jost.
+ * Headings and body both use Poppins for a clean professional look.
  * All color values are oklch and exposed as semantic tokens only.
  */
 
 @theme inline {
-  --font-serif: "Cormorant Garamond", Georgia, serif;
-  --font-sans: "Jost", system-ui, sans-serif;
+  --font-serif: "Poppins", system-ui, sans-serif;
+  --font-sans: "Poppins", system-ui, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);

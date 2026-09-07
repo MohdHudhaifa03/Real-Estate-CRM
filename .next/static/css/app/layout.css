@@ -6,8 +6,8 @@
 @layer theme, base, components, utilities;
 @layer theme {
   :root, :host {
-    --font-sans: "Jost", system-ui, sans-serif;
-    --font-serif: "Cormorant Garamond", Georgia, serif;
+    --font-sans: "Poppins", system-ui, sans-serif;
+    --font-serif: "Poppins", system-ui, sans-serif;
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
       "Courier New", monospace;
     --color-black: #000;
@@ -50,7 +50,7 @@
     --aspect-video: 16 / 9;
     --default-transition-duration: 150ms;
     --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    --default-font-family: "Jost", system-ui, sans-serif;
+    --default-font-family: "Poppins", system-ui, sans-serif;
     --default-mono-font-family: var(--font-mono);
     --color-background: var(--background);
     --color-foreground: var(--foreground);
@@ -1550,10 +1550,10 @@
     font-family: var(--font-mono);
   }
   .font-sans {
-    font-family: "Jost", system-ui, sans-serif;
+    font-family: "Poppins", system-ui, sans-serif;
   }
   .font-serif {
-    font-family: "Cormorant Garamond", Georgia, serif;
+    font-family: "Poppins", system-ui, sans-serif;
   }
   .text-2xl {
     font-size: var(--text-2xl);
